@@ -1,0 +1,290 @@
+1r
+clc;
+clear all;
+Fs = 1000; % sampling frequency 1 kHz
+t = 0 : 1/Fs : 0.296; % time scale
+f = 200; % Hz, embedded dominant frequency
+x = cos(2*pi*f*t) + randn(size(t)); % time series
+plot(t,x), axis('tight'), grid('on'), title('Time series'), figure
+nfft = 512; % next larger power of 2
+y = fft(x,nfft); % Fast Fourier Transform
+y = abs(y.^2); % raw power spectrum density
+y = y(1:1+nfft/2); % half-spectrum
+[v,k] = max(y); % find maximum
+f_scale = (0:nfft/2)* Fs/nfft; % frequency scale
+plot(f_scale, y),axis('tight'),grid('on'),title('Dominant Frequency')
+f_est = f_scale(k); % dominant frequency estimate
+fprintf('Dominant freq.: true %f Hz, estimated %f Hznn', f, f_est)
+fprintf('Frequency step (resolution) = %f Hznn', f_scale(2))
+
+2r
+
+h = 60 / 72; % Heart rate period
+figure; % Create a new figure 
+for a = 0:h:2*h
+    ECGdur = 0:0.001:2.5;
+    Pint = 0.11;
+    PRint = 0.17;
+    STseg = 0.10;
+    QTint = 0.40;
+    QRSint = 0.09;
+    pPeak = 0.25;
+    rPeak = 1.6;
+    qPeak = 0.25 * rPeak;
+    sPeak = 0.35 * rPeak;
+    tPeak = 0.3;
+
+    % Generation of P Wave
+    x = 0:0.001:Pint;
+    y = pPeak * sin(x * pi / Pint);
+
+    % Plot the P wave
+    plot(a + x, y); 
+    grid on;
+    hold on;
+    
+    %genertion of pr segment 
+    x=Pint:0.001:PRint; 
+     plot(a+x,0);
+
+%qrs Complex 
+q1=PRint+0.015; 
+r1=PRint+0.045; 
+s1=PRint+0.075; 
+s2=PRint+QRSint; 
+x=PRint:0.001:q1; 
+y=-26.667*x+4.53333; 
+plot(a+x,y) 
+x=q1:0.001:r1; 
+y=66.667*x-12.733; 
+plot(a+x,y) 
+x=r1:0.001:s1; 
+y=-72*x+17.08; 
+plot(a+x,y) 
+x=s1:0.001:s2; 
+y=37.333*x-9.706; 
+plot(a+x,y) 
+
+ %st segment 
+t1=PRint+QRSint+STseg; 
+x=s2:0.0001:t1; 
+plot(a+x,0) 
+
+%Twave 
+t2=PRint+QTint; 
+x=t1:0.001:t2; 
+y=tPeak*sin((x-t1)*pi/(t2-t1)); 
+plot(a+x,y) 
+x=t2:0.0001:h; 
+plot(a+x,0) 
+    xlabel('Time (s)');
+    ylabel('Voltage (mV)');
+    title('ECG Wave');
+end
+
+
+3r
+
+clc;
+clc;
+clear all;
+close all;
+
+% Open and read the file
+data = load("C:\Users\Rutuja\OneDrive\Desktop\emg_healthy.txt"); % assumes two columns: time and amplitude
+t = data(:, 1);  % time values
+emg = data(:, 2); % EMG signal values
+
+fs = 1000; % Sampling frequency (Hz)
+N = length(emg); % Number of samples
+f = linspace(0, fs, N); % Frequency axis
+
+Y = fft(emg); % Apply FFT
+Y(1) = 0; % Remove DC component
+Y_mag = abs(Y); % Magnitude spectrum
+
+[~, idx] = max(Y_mag); % Index of dominant frequency
+dominant_freq = f(idx); % Value from frequency axis
+
+fprintf('Correct Dominant Frequency: %f Hz\n',dominant_freq);
+
+4r
+
+t = linspace(0, 1, 500); % Time Vector 
+EEG = rand(10, 500)*0.005; % Simulate EEG (mV) 
+ofst = [1:size(EEG,1)]*0.005 + 0.001; % ‘Offset’ Vector 
+EEGp = bsxfun(@plus, EEG', ofst)'; % Add ‘Offset’ To Each Row 
+figure(1) 
+plot(t, EEGp) % Plot EEG 
+axis([xlim 0 0.055]) % Set Axis Limits 
+ChC = regexp(sprintf('Ch-%02d ', [1:size(EEG,1)]), ' ', 'split'); % Y-Tick Labels 
+yt = ofst+0.0025; % Y-Yick Positions 
+set(gca, 'YTick',yt, 'YTickLabel',ChC(1:end-1))
+
+5r
+
+clc; 
+close all; 
+clear all; 
+%problem 11.1
+%%import the data in the fil\tsclient\E\BIOM480A3\Hw5\p11_1.xls'e and plot the signal
+problem11_1 = load('/MATLAB Drive/BSP/emg_healthy.txt'); 
+t = problem11_1(:, 1); 
+y1 = problem11_1(:, 2); 
+N = length(y1);% find the length of the data per second
+ls = size(y1); %% size
+f = 1/N;% find the sampling rate or frequency
+fs = 3000; 
+T = 1/fs % period between each sample
+t1 = (0 : N-1) *T;%t = (0:1:length(y1)-1)/fs; % sampling period
+Nyquist = fs/2; figure; 
+subplot (3,1,1), plot(t,y1,'b'); 
+title ('EMG signal of single muscle 40 month old patient '); 
+xlabel ('time (sec)'); 
+ylabel ('Amplitute (V)'); 
+grid on; 
+Y= abs(fft(y1)); Y(1) = []; 
+power = abs(Y(1:N/2)).^2; 
+nyquist = 1/(2*0.001); freq = (1:N/2)/(N/2)*nyquist; 
+subplot(212);
+plot(freq,power);
+grid on;
+xlabel('Sample number (in Frequency)') 
+ylabel('Power spectrumen'); 
+title({'Single-sided Power spectrum' ... 
+ ' (Frequency in shown on a log scale)'}); 
+axis tight;
+%%% RMS of the signal
+rms_y1 = sqrt(mean(y1.^2)); 
+msgbox(strcat('RMS of EMG signal is = ',mat2str(rms_y1), '')); 
+rms_emg = rms (y1); 
+%%%%%AVR of the signal
+ arv_y1 = abs(mean(y1)); 
+ msgbox(strcat('ARV of EMG signal is = ',mat2str(arv_y1), ''));
+
+
+6r
+
+clc; 
+close all; 
+clear all; 
+
+% Import the CSV file correctly
+problem11_1 = readtable('/MATLAB Drive/BSP/EMG-data.csv');  
+
+% Extract time and EMG signal data
+t = problem11_1.time; 
+y1 = problem11_1.channel1; 
+
+% Find the length of the data per second
+N = length(y1);
+ls = size(y1); % Size of y1
+f = 1/N; % Sampling rate or frequency
+fs = 3000; 
+T = 1/fs; % Period between each sample
+t1 = (0 : N-1) * T; % Time vector
+Nyquist = fs / 2; 
+
+% Plot EMG Signal
+figure;
+subplot(3,1,1), plot(t, y1, 'b'); 
+title('EMG signal'); 
+xlabel('time (sec)'); 
+ylabel('Amplitude (V)'); 
+grid on; 
+
+% Compute Power Spectrum
+Y = abs(fft(y1)); 
+Y(1) = []; 
+power = abs(Y(1:N/2)).^2; 
+nyquist = 1 / (2 * 0.001); 
+freq = (1:N/2) / (N/2) * nyquist; 
+
+% Plot Power Spectrum
+subplot(212), plot(freq, power), grid on;
+xlabel('Sample number (in Frequency)') 
+ylabel('Power spectrum'); 
+title({'Single-sided Power Spectrum' ... 
+ ' (Frequency shown on a log scale)'}); 
+axis tight;
+
+
+7r
+
+%% Removing High-Frequency Noise from an ECG Signal
+% This example shows how to lowpass filter an ECG signal that contains high frequency 
+% noise.
+
+%%
+% Create one period of an ECG signal. The |ecg| function creates an ECG signal
+% of length 500. The |sgolayfilt| function smoothes the ECG signal using a
+% Savitzky-Golay (polynomial) smoothing filter.
+x = ecg(500).';
+y = sgolayfilt(x,0,5);
+[M,N] = size(y);
+
+%%
+% Initialize the time scope to view the noisy signal and the filtered
+% signal.
+Fs = 1000;
+TS = timescope('SampleRate',Fs,...
+                    'TimeSpanSource','Property',...
+                    'TimeSpan',1.5,...
+                    'ShowGrid',true,...
+                    'NumInputPorts',2,...
+                    'LayoutDimensions',[2 1]);
+TS.ActiveDisplay = 1;
+TS.YLimits = [-1,1];
+TS.Title = 'Noisy Signal';
+TS.ActiveDisplay = 2;
+TS.YLimits = [-1,1];
+TS.Title = 'Filtered Signal';
+%%
+% Design a minimum-order lowpass filter with a passband edge frequency of 200
+% Hz and a stopband edge frequency of 400 Hz. The desired  amplitude of the frequency
+% response and the weights are specified in |A| and |D| vectors, respectively. Pass
+% these specification vectors to the |firgr| function to design the filter
+% coefficients. Pass these designed coefficients to the |dsp.FIRFilter|
+% object.
+Fpass  = 200;
+Fstop = 400;
+Dpass = 0.05;
+Dstop = 0.0001;
+F     = [0 Fpass Fstop Fs/2]/(Fs/2);
+A     = [1 1 0 0];
+D     = [Dpass Dstop];
+b = firgr('minorder',F,A,D);
+LP = dsp.FIRFilter('Numerator',b);
+%%
+% Design a minimum-order highpass filter with a stopband edge frequency of 200
+% Hz and a passband edge frequency of 400 Hz. Design the filter using the
+% |firgr| function. Pass these designed coefficients to the |dsp.FIRFilter|
+% object.
+Fstop = 200;
+Fpass = 400;
+Dstop = 0.0001;
+Dpass = 0.05;
+F = [0 Fstop Fpass Fs/2]/(Fs/2); % Frequency vector
+A = [0 0 1 1]; % Amplitude vector
+D = [Dstop Dpass];   % Deviation (ripple) vector
+b  = firgr('minord',F,A,D);
+HP = dsp.FIRFilter('Numerator',b);
+%%
+% The noisy signal contains the smoothed ECG signal along with high
+% frequency noise. The signal is filtered using a lowpass filter. View the
+% noisy signal and the filtered signal using the time scope.
+tic;
+while toc < 30
+    x = .1 * randn(M,N);
+    highFreqNoise = HP(x);
+    noisySignal = y + highFreqNoise;
+    filteredSignal = LP(noisySignal);
+    TS(noisySignal,filteredSignal);
+end
+
+% Finalize
+release(TS)
+
+
+%% 
+% Copyright 2012 The MathWorks, Inc.
