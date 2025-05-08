@@ -288,3 +288,66 @@ release(TS)
 
 %% 
 % Copyright 2012 The MathWorks, Inc.
+
+1r b
+
+clc;
+clear all;
+
+% Load audio file
+[audioData, Fs] = audioread("C:\Users\admin\Downloads\audio (1).wav"); % Replace with your audio file name
+
+% Normalize the audio signal
+audioData = audioData / max(abs(audioData));
+
+% If the audio has two channels (stereo), convert to mono
+if size(audioData, 2) > 1
+    audioData = mean(audioData, 2);
+end
+
+% Define time scale
+t = (0:length(audioData)-1) / Fs; % Time scale based on audio sample rate
+
+% Plot time series
+figure;
+plot(t, audioData);
+axis('tight');
+grid('on');
+title('Time Series of Audio Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
+% Set custom x-ticks for time series
+xticks(0:0.5:max(t));
+xtickformat('%.1f');
+
+% Perform FFT to find dominant frequency
+nfft = 2^nextpow2(length(audioData)); % Next power of 2 for FFT
+y = fft(audioData, nfft); % Fast Fourier Transform
+y = abs(y).^2; % Raw power spectrum density
+y = y(1:1+nfft/2); % Half-spectrum
+
+% Frequency scale
+f_scale = (0:nfft/2) * Fs / nfft;
+
+% Find dominant frequency
+[v, k] = max(y); % Find maximum
+f_est = f_scale(k); % Dominant frequency estimate
+
+% Plot power spectrum density
+figure;
+plot(f_scale, y);
+axis('tight');
+grid('on');
+title('Power Spectrum Density');
+xlabel('Frequency (Hz)');
+ylabel('Power');
+% Set custom x-ticks for frequency scale
+xticks(0:100:max(f_scale));
+xlim([0 1000]); % Limit x-axis to show up to 1000 Hz
+xtickformat('%.0f');
+
+% Display results
+fprintf('Dominant Frequency: Estimated %f Hz\n', f_est);
+fprintf('Frequency Step (Resolution) = %f Hz\n', f_scale(2));
+
+
