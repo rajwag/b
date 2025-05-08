@@ -351,3 +351,77 @@ fprintf('Dominant Frequency: Estimated %f Hz\n', f_est);
 fprintf('Frequency Step (Resolution) = %f Hz\n', f_scale(2));
 
 
+2s
+
+clc;
+clear all;
+close all;
+
+% Set heart rate
+h = 60 / 72;  % Time for one beat (in seconds)
+
+% ECG wave parameters
+Pint = 0.11;
+PRint = 0.17;
+STseg = 0.10;
+QTint = 0.40;
+QRSint = 0.09;
+
+pPeak = 0.25;
+rPeak = 1.6;
+tPeak = 0.3;
+
+for a = 0:h:2*h  % Generate two ECG cycles
+    % P wave
+    x = 0:0.001:Pint;
+    y = pPeak * sin(x * pi / Pint);
+    plot(a + x, y, 'b');
+    hold on;
+    
+    % PR segment
+    x = Pint:0.001:PRint;
+    plot(a + x, zeros(size(x)), 'k');
+    
+    % QRS Complex
+    q1 = PRint + 0.015;
+    r1 = PRint + 0.045;
+    s1 = PRint + 0.075;
+    s2 = PRint + QRSint;
+
+    x = PRint:0.001:q1;
+    y = -26.667 * x + 4.53333;
+    plot(a + x, y, 'r');
+
+    x = q1:0.001:r1;
+    y = 66.667 * x - 12.733;
+    plot(a + x, y, 'r');
+
+    x = r1:0.001:s1;
+    y = -72 * x + 17.08;
+    plot(a + x, y, 'r');
+
+    x = s1:0.001:s2;
+    y = 37.333 * x - 9.706;
+    plot(a + x, y, 'r');
+    
+    % ST segment
+    t1 = PRint + QRSint + STseg;
+    x = s2:0.001:t1;
+    plot(a + x, zeros(size(x)), 'k');
+    
+    % T wave
+    t2 = PRint + QTint;
+    x = t1:0.001:t2;
+    y = tPeak * sin((x - t1) * pi / (t2 - t1));
+    plot(a + x, y, 'm');
+
+    % End to baseline
+    x = t2:0.001:h;
+    plot(a + x, zeros(size(x)), 'k');
+end
+
+grid on;
+xlabel('Time (s)');
+ylabel('Voltage (mV)');
+title('Synthetic ECG Signal at 72 bpm');
+axis([0 2 -0.5 2]);
